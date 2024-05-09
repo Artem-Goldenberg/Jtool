@@ -66,7 +66,7 @@ struct TaskView: View {
             HStack(spacing: 15) {
                 Text("Author:").bold()
                 NavigationLink {
-                    ProfileView()
+                    ProfileView(info: author, readOnly: true)
                 } label: {
 //                    DisplayImage(image: author.image)
 //                        .frame(width: 30, height: 30)

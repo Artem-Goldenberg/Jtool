@@ -6,14 +6,14 @@ struct Task: Identifiable {
     let id: String
     let number: Int
 
-    let title: String
-    let description: String?
+    var title: String
+    var description: String?
 
     let author: PersonId
-    let assignee: PersonId
+    var assignee: PersonId
 
-    let status: Status
-    let comments: [Comment]
+    var status: Status
+    var comments: [Comment]
 
     enum Status {
         case active
@@ -38,9 +38,9 @@ struct Task: Identifiable {
 
     static let test: [Task] = [
         .init(title: "Design", description: "We need to make and design. Upload a ready well prepared copy of your work!. Don't be late!"),
-        .init(title: "Get Firebase"),
-        .init(title: "Starter App"),
-        .init(title: "Some more")
+        .init(title: "Get Firebase", author: 1),
+        .init(title: "Starter App", author: 2),
+        .init(title: "Some more", author: 3)
     ]
 
 }

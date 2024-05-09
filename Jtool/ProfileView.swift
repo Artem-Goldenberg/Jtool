@@ -2,7 +2,13 @@ import SwiftUI
 import PhotosUI
 
 struct ProfileView: View {
-    @State private var info = ProfileInfo()
+    var readOnly: Bool
+    @State private var info: ProfileInfo
+
+    init(info: ProfileInfo, readOnly: Bool = false) {
+        self.info = info
+        self.readOnly = readOnly
+    }
 
     var body: some View {
         Form {
@@ -30,11 +36,12 @@ struct ProfileView: View {
                 }
             }
 
-            Section {
-                Button("Confirm") { }
+            if !readOnly {
+                Section {
+                    Button("Confirm") { }
+                }
             }
-
-        }
+        }.disabled(readOnly)
     }
 }
 
@@ -94,5 +101,5 @@ struct ProfileImage: View {
 }
 
 #Preview {
-    ProfileView()
+    ProfileView(info: .test[0])
 }
