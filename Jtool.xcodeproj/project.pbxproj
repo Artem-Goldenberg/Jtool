@@ -7,12 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		810C40482BECFF8700D415B6 /* Task.swift in Sources */ = {isa = PBXBuildFile; fileRef = 810C40472BECFF8700D415B6 /* Task.swift */; };
-		810C404A2BECFFC900D415B6 /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 810C40492BECFFC900D415B6 /* Profile.swift */; };
+		810C68E92BEE48F600F2E006 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 810C68E82BEE48F600F2E006 /* Models.swift */; };
 		811978D12BE7A43700CD5F38 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 811978D02BE7A43700CD5F38 /* LoginView.swift */; };
 		811978D32BE7CAE100CD5F38 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 811978D22BE7CAE100CD5F38 /* ProfileView.swift */; };
 		811978D52BE7CAEA00CD5F38 /* TaskListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 811978D42BE7CAEA00CD5F38 /* TaskListView.swift */; };
-		811978D72BE7CAF300CD5F38 /* RunView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 811978D62BE7CAF300CD5F38 /* RunView.swift */; };
+		811978D72BE7CAF300CD5F38 /* StageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 811978D62BE7CAF300CD5F38 /* StageView.swift */; };
 		811978D92BE7CAFD00CD5F38 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 811978D82BE7CAFD00CD5F38 /* CalendarView.swift */; };
 		813DE6192B83E87900BA7EF5 /* JtoolApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 813DE6182B83E87900BA7EF5 /* JtoolApp.swift */; };
 		813DE61B2B83E87900BA7EF5 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 813DE61A2B83E87900BA7EF5 /* MainView.swift */; };
@@ -45,15 +44,15 @@
 		813DE6582B83EB7400BA7EF5 /* FirebaseRemoteConfigSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 813DE6572B83EB7400BA7EF5 /* FirebaseRemoteConfigSwift */; };
 		813DE65A2B83EB7400BA7EF5 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 813DE6592B83EB7400BA7EF5 /* FirebaseStorage */; };
 		813DE65C2B83EB7400BA7EF5 /* FirebaseStorageCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 813DE65B2B83EB7400BA7EF5 /* FirebaseStorageCombine-Community */; };
+		8152D5A42BED244B00F84F30 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8152D5A32BED244B00F84F30 /* Store.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		810C40472BECFF8700D415B6 /* Task.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Task.swift; sourceTree = "<group>"; };
-		810C40492BECFFC900D415B6 /* Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profile.swift; sourceTree = "<group>"; };
+		810C68E82BEE48F600F2E006 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		811978D02BE7A43700CD5F38 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		811978D22BE7CAE100CD5F38 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		811978D42BE7CAEA00CD5F38 /* TaskListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskListView.swift; sourceTree = "<group>"; };
-		811978D62BE7CAF300CD5F38 /* RunView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunView.swift; sourceTree = "<group>"; };
+		811978D62BE7CAF300CD5F38 /* StageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageView.swift; sourceTree = "<group>"; };
 		811978D82BE7CAFD00CD5F38 /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
 		813DE6152B83E87900BA7EF5 /* Jtool.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Jtool.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		813DE6182B83E87900BA7EF5 /* JtoolApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JtoolApp.swift; sourceTree = "<group>"; };
@@ -61,6 +60,7 @@
 		813DE61C2B83E87D00BA7EF5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		813DE61F2B83E87D00BA7EF5 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		813DE6262B83E93500BA7EF5 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		8152D5A32BED244B00F84F30 /* Store.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -123,10 +123,10 @@
 				811978D02BE7A43700CD5F38 /* LoginView.swift */,
 				813DE61A2B83E87900BA7EF5 /* MainView.swift */,
 				811978D22BE7CAE100CD5F38 /* ProfileView.swift */,
-				810C40492BECFFC900D415B6 /* Profile.swift */,
 				811978D42BE7CAEA00CD5F38 /* TaskListView.swift */,
-				810C40472BECFF8700D415B6 /* Task.swift */,
-				811978D62BE7CAF300CD5F38 /* RunView.swift */,
+				811978D62BE7CAF300CD5F38 /* StageView.swift */,
+				8152D5A32BED244B00F84F30 /* Store.swift */,
+				810C68E82BEE48F600F2E006 /* Models.swift */,
 				811978D82BE7CAFD00CD5F38 /* CalendarView.swift */,
 				813DE61C2B83E87D00BA7EF5 /* Assets.xcassets */,
 				813DE6262B83E93500BA7EF5 /* GoogleService-Info.plist */,
@@ -245,14 +245,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				810C40482BECFF8700D415B6 /* Task.swift in Sources */,
+				810C68E92BEE48F600F2E006 /* Models.swift in Sources */,
+				8152D5A42BED244B00F84F30 /* Store.swift in Sources */,
 				811978D32BE7CAE100CD5F38 /* ProfileView.swift in Sources */,
 				811978D92BE7CAFD00CD5F38 /* CalendarView.swift in Sources */,
 				811978D12BE7A43700CD5F38 /* LoginView.swift in Sources */,
-				811978D72BE7CAF300CD5F38 /* RunView.swift in Sources */,
+				811978D72BE7CAF300CD5F38 /* StageView.swift in Sources */,
 				813DE61B2B83E87900BA7EF5 /* MainView.swift in Sources */,
 				811978D52BE7CAEA00CD5F38 /* TaskListView.swift in Sources */,
-				810C404A2BECFFC900D415B6 /* Profile.swift in Sources */,
 				813DE6192B83E87900BA7EF5 /* JtoolApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

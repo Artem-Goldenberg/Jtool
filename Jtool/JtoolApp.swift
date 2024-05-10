@@ -15,9 +15,12 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 struct JtoolApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
 
+    @StateObject private var store: Store = .init()
+
     var body: some Scene {
         WindowGroup {
             MainView()
+                .environmentObject(store)
         }
     }
 }

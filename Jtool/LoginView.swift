@@ -25,6 +25,8 @@ struct LoginView: View {
         case password
     }
 
+    @EnvironmentObject var store: Store
+
     @Binding var isLogged: Bool
 
     @State private var loginFailed = false
@@ -86,17 +88,24 @@ struct LoginView: View {
     }
 
     private func loginUser() {
-        print("It works!")
-        withAnimation {
-            isLogged = true
+        Auth.auth().signIn(withEmail: login, password: password) { userData, error in
+            if let error = error {
+                errorMessage = error.localizedDescription
+                loginFailed = true
+                return
+            }
+            guard let email = userData?.user.email else {
+                errorMessage = "Unknown User"
+                loginFailed = true
+                return
+            }
+            Worker {
+                await store.load(for: email)
+            }
+            withAnimation {
+                isLogged = true
+            }
         }
-//        Auth.auth().signIn(withEmail: login, password: password) { user, error in
-//            if let error = error {
-//                loginFailed = true
-//                errorMessage = error.localizedDescription
-//                return
-//            }
-//        }
     }
 }
 
