@@ -38,6 +38,7 @@ struct Comment: Codable {
 
     let author: DocumentReference
     let content: String
+    let timestamp: Date
 }
 
 struct Stage: Codable {

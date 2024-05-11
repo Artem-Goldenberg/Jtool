@@ -1,6 +1,7 @@
 import Foundation
 import FirebaseCore
 import FirebaseFirestore
+import FirebaseStorage
 
 @MainActor
 class Store: ObservableObject {
@@ -19,6 +20,12 @@ class Store: ObservableObject {
 //    @Published var availableTeams: [String] = []
 //    @Published var availableJobs: [String] = []
 
+    var userId: Int? {
+        users.firstIndex {
+            $0.id == profile.id
+        }
+    }
+
     var currentTasks: [Task] {
         guard let currentStage = currentStage else {
             return []
@@ -29,6 +36,7 @@ class Store: ObservableObject {
     private var currentStage: Int?
 
     private let db = Firestore.firestore()
+    private let storage = Storage.storage()
 
     func load(for userEmail: String) async {
         do {
@@ -51,24 +59,34 @@ class Store: ObservableObject {
         }
         self.profile = profile
 
-        if let currentStage = stages.firstIndex(where: {!$0.isFinished }) {
-            self.currentStage = currentStage
-            let stageDoc = db.collection("stages").document(stages[currentStage].id!)
-            do {
-                let taskDocs = try await stageDoc.collection("tasks").getDocuments().documents
-                for task in taskDocs {
-                    stages[currentStage].tasks.append(try await decodeTask(from: task))
-                }
-            } catch (let error) {
-                errorMessage = error.localizedDescription
-                return
+        await loadTasks()
+    }
+
+    private func loadTasks() async {
+        guard let currentStage = stages.firstIndex(where: {!$0.isFinished })
+        else { return }
+        self.currentStage = currentStage
+        let stageDoc = db.collection("stages").document(stages[currentStage].id!)
+        do {
+            let taskDocs = try await stageDoc.collection("tasks").getDocuments().documents
+            stages[currentStage].tasks.removeAll(keepingCapacity: true)
+            for task in taskDocs {
+                stages[currentStage].tasks.append(
+                    try await decodeTask(from: task, stage: stageDoc)
+                )
             }
+        } catch (let error) {
+            errorMessage = error.localizedDescription
+            return
         }
     }
 
-    private func decodeTask(from query: QueryDocumentSnapshot) async throws -> Task {
+    private func decodeTask(
+        from query: QueryDocumentSnapshot,
+        stage: DocumentReference
+    ) async throws -> Task {
         var task = try query.data(as: Task.self)
-        let commentsCollection = db.collection("tasks").document(task.id).collection("comments")
+        let commentsCollection = stage.collection("tasks/\(task.id!)/comments")
         let commentSnapshot = try await commentsCollection.getDocuments()
         if !commentSnapshot.isEmpty {
             task.comments = try commentSnapshot.documents.map { try $0.data(as: Comment.self) }
@@ -94,13 +112,39 @@ class Store: ObservableObject {
             errorMessage = "No current stage is given" // TODO: ??
             return
         }
+        
+        let taskCollection = db.collection("stages/\(stages[currentStage].id!)/tasks")
         do {
-            let taskCollection = db.collection("stages/\(stages[currentStage].id!)/tasks")
             try await taskCollection.document(taskId).updateData(["status": status])
         } catch (let error) {
             errorMessage = error.localizedDescription
             return
         }
+    }
+
+    func add(comment: String, for taskId: String) async -> String? {
+        guard let currentStage = currentStage else {
+            errorMessage = "No current stage is given" // TODO: ??
+            return nil
+        }
+
+        let taskCollection = db.collection("stages/\(stages[currentStage].id!)/tasks")
+        let commentsCollection = taskCollection.document(taskId).collection("comments")
+        let currentUser = db.collection("users").document(profile.id)
+
+        let commentRef: DocumentReference
+        do {
+            commentRef = try commentsCollection.addDocument(
+                from: Comment(author: currentUser, content: comment, timestamp: Date())
+            )
+        } catch (let error) {
+            errorMessage = error.localizedDescription
+            return nil
+        }
+
+        await loadTasks()
+
+        return commentRef.documentID
     }
 }
 

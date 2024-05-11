@@ -1,4 +1,7 @@
 import SwiftUI
+import FirebaseFirestore
+
+// TODO: fetch by relaoding
 
 fileprivate func title(for task: Task) -> String {
     return task.title
@@ -26,9 +29,12 @@ struct TaskListView: View {
                     }
                     .listStyle(.inset)
                 }
+                .navigationTitle("Tasks")
+                .refreshable {
+                    await store.load(for: store.profile.email)
+                }
         }
         .searchable(text: $search)
-        .navigationTitle("Tasks")
     }
 }
 
@@ -38,6 +44,7 @@ struct TaskView: View {
     init(task: Task) {
         self.task = task
         self.status = task.status.rawValue
+        self.comments = []
     }
 
     @EnvironmentObject var store: Store
@@ -49,7 +56,29 @@ struct TaskView: View {
         store.users.firstIndex { $0.id == task.assignee?.documentID }
     }
 
+    struct Comment {
+        var id: String
+        let authorId: Int
+        let content: String
+        let timestamp: Date
+    }
+//
+//    private var comments: [Comment] {
+//        task.comments.compactMap { comment in
+//            guard let id = store.users.firstIndex(where: { $0.id == comment.author.documentID })
+//            else { return nil }
+//            return Comment(
+//                id: comment.id, authorId: id,
+//                content: comment.content,
+//                timestamp: comment.timestamp
+//            )
+//        }.sorted(using: KeyPathComparator(\.timestamp, order: .reverse))
+//    }
+
     @State private var status: String
+    @State private var comments: [Comment]
+    @State private var commenting: Bool = false
+    @State private var commentText: String = ""
 
     var body: some View {
         Form {
@@ -81,17 +110,124 @@ struct TaskView: View {
                         Text($0)
                     }
                 }
-                .onChange(of: status) {
-                    Worker {
-                        await store.change(status: status, for: task.id)
-                        if store.hasError {
-                            self.status = task.status.rawValue
+                .onChange(of: status, updateStatus)
+            }
+
+            Spacer(minLength: 50).listRowBackground(Color(UIColor.systemGroupedBackground))
+
+
+            Section(header: Text("Comments").font(.title)) { EmptyView() }
+
+            Section {
+                Button("Add comment") {
+                    commenting = true
+                }.buttonStyle(.borderless)
+            }
+
+            ForEach(comments, id: \.id) { comment in
+                Section {
+                    Text(comment.content)
+                    NavigationLink {
+                        ProfileView(info: $store.users[comment.authorId], readOnly: true)
+                    } label: {
+                        Text(caption(for: comment))
+                        .foregroundStyle(.link)
+                    }
+                }
+            }.buttonStyle(.borderless)
+        }
+        .navigationTitle(task.title)
+        .sheet(isPresented: $commenting) {
+            CommentField(commenting: $commenting, comments: $comments, text: $commentText, taskId: task.id)
+        }
+        .onAppear(perform: filterComments)
+    }
+
+    private func caption(for comment: Comment) -> String {
+        let dateString = comment.timestamp.formatted(date: .abbreviated, time: .shortened)
+        return "\(store.users[comment.authorId].name), \(dateString)"
+    }
+
+    private func updateStatus() {
+        Worker {
+            await store.change(status: status, for: task.id)
+            if store.hasError {
+                self.status = task.status.rawValue
+            }
+        }
+    }
+
+    private func filterComments() {
+        comments = task.comments.compactMap { comment in
+            guard let id = store.users.firstIndex(where: { $0.id == comment.author.documentID })
+            else { return nil }
+            return Comment(
+                id: comment.id, authorId: id,
+                content: comment.content,
+                timestamp: comment.timestamp
+            )
+        }.sorted(using: KeyPathComparator(\.timestamp, order: .reverse))
+    }
+}
+
+struct CommentField: View {
+    @Binding var commenting: Bool
+    @Binding var comments: [TaskView.Comment]
+    @Binding var text:String
+
+
+    let taskId: String
+
+    @EnvironmentObject var store: Store
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                TextField("Write here", text: $text, axis: .vertical)
+                    .lineLimit(12)
+//                TextEditor(text: $text)
+            }
+            .toolbar {
+                Group {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Done", action: uploadComment)
+                            .font(.headline)
+                    }
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("Cancel") {
+                            commenting = false
+                            text = ""
                         }
                     }
                 }
             }
+            .navigationTitle("Comment this task")
+            .navigationBarTitleDisplayMode(.inline)
+            .scrollDisabled(true)
         }
-        .navigationTitle(task.title)
+    }
+
+    private func uploadComment() {
+        commenting = false
+        guard text != "" else { return }
+        Worker {
+            guard let id = await store.add(comment: text, for: taskId) else {
+                return
+            }
+            // TODO: kinda bad, but ok...
+            let newComment = TaskView.Comment(
+                id: id,
+                authorId: store.userId!,
+                content: text,
+                timestamp: Date()
+            )
+            if let index = comments.firstIndex(where: { $0.timestamp < newComment.timestamp }) {
+                comments.insert(newComment, at: index)
+            } else {
+                comments.append(newComment)
+            }
+            text = ""
+        }
     }
 }
 
@@ -140,7 +276,7 @@ struct TaskView1: View {
                 Spacer()
             }
 
-            Spacer()
+           Spacer()
         }
         .padding(.horizontal, 15)
 //            }
