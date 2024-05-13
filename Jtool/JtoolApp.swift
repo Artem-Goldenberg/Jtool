@@ -15,7 +15,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 struct JtoolApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
 
-    @StateObject private var store: Store = .init()
+    @StateObject private var store: EventStore = .init()
 
     var body: some Scene {
         WindowGroup {

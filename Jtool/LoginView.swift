@@ -25,15 +25,15 @@ struct LoginView: View {
         case password
     }
 
-    @EnvironmentObject var store: Store
+    @EnvironmentObject var store: EventStore
 
     @Binding var isLogged: Bool
 
     @State private var loginFailed = false
     @State private var errorMessage: String?
 
-    @State private var login = ""
-    @State private var password = ""
+    @State private var login = "1125@gmail.com"
+    @State private var password = "1125password"
     @FocusState private var current: Field?
 
     var welcome: some View {
@@ -64,7 +64,12 @@ struct LoginView: View {
                     .submitLabel(.done)
             }
             Section {
-                Button("Login", action: loginUser)
+                Button(action: loginUser) {
+                    Text("Login")
+                        .listRowBackground(Color.blue)
+                        .frame(alignment: .center)
+                        .font(.headline)
+                }
             }
             .disabled(login.isEmpty || password.isEmpty)
             .alert("Login Failed", isPresented: $loginFailed) {
@@ -99,9 +104,7 @@ struct LoginView: View {
                 loginFailed = true
                 return
             }
-            Worker {
-                await store.load(for: email)
-            }
+            store.setup(for: email)
             withAnimation {
                 isLogged = true
             }

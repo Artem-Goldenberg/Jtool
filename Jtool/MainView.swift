@@ -6,48 +6,58 @@ struct MainView: View {
     }
 
     @State private var selection = 3
-
-    @EnvironmentObject var store: Store
+    @EnvironmentObject var store: EventStore
 
     var body: some View {
         TabView(selection: $selection) {
-            CalendarView()
-                .tabItem {
-                    Image(systemName: "calendar")
+            EventsView()
+            .tabItem {
+                Image(systemName: "calendar")
                     .padding(40)
-                }
-                .tag(1)
+            }
+            .tag(1)
             StageView()
                 .tabItem {
                     Image(systemName: "figure.run")
                     .padding(40)
                 }
                 .tag(2)
+                .environmentObject(store as Store)
             TaskListView()
                 .tabItem {
                     Image(systemName: "list.bullet.rectangle")
                     .padding(40)
                 }
                 .tag(3)
-            ProfileView(info: $store.profile)
-                .tabItem {
-                    Image(systemName: "person.fill")
-                    .padding(40)
+                .environmentObject(store as Store)
+            Group {
+                if let profile = store.profile {
+                    ProfileEditView(profile: profile)
+                } else {
+                    ContentUnavailableView("Profile hasn't not loaded yet", systemImage: "figure.walk.motion.trianglebadge.exclamationmark")
                 }
-                .tag(4)
+            }
+            .tabItem {
+                Image(systemName: "person.fill")
+                    .padding(40)
+            }
+            .tag(4)
+            .environmentObject(store as Store)
         }
         .onAppear {
-            Worker { await store.load(for: "1125@gmail.com") }
-        }
-        .alert("Firebase Errors", isPresented: $store.hasError) {
-            Button("OK", role: .cancel) {
-                store.hasError = false
-                store.errorMessage = nil
+            Worker {
+                await store.loadAll()
             }
+        }
+        .alert("Firebase Error", isPresented: $store.hasError) {
             Button("Retry") {
                 store.hasError = false
                 store.errorMessage = nil
-                Worker { await store.load(for: "1125@gmail.com") }
+                Worker { await store.loadStages() }
+            }
+            Button("OK", role: .cancel) {
+                store.hasError = false
+                store.errorMessage = nil
             }
         } message: {
             Text(store.errorMessage ?? "Unknown error")
