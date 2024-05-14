@@ -3,9 +3,9 @@ import FirebaseFirestore
 
 struct TaskListView: View {
     enum Filter: String, Identifiable, CaseIterable {
-        case forMe = "Assigned to me"
-        case byMe = "Created by me"
-        case all = "This stage"
+        case forMe = "Assignee"
+        case byMe = "Author"
+        case all = "All"
         var id: Self { self }
         var noneMessage: String {
             switch self {
@@ -20,22 +20,25 @@ struct TaskListView: View {
 //        case dateReverse
 //        case overdue
 //    }
+    let stage: Stage
+
     @State private var search: String = ""
     @State private var filter: Filter = .forMe
+    @State private var showingEdit = false
 //    @State private var sortBy: SortType = .date
     @State private var showFilters = false
 
     @EnvironmentObject var store: Store
 
     private var filtered: [Task] {
-        let tasks = store.stage?.tasks
+        let tasks = stage.tasks
             .filter {
                 switch filter {
                 case .forMe: $0.assignee.id == store.profile?.id
                 case .byMe: $0.author.id == store.profile?.id
                 case .all: true
                 }
-            } ?? []
+            }
         guard !search.isEmpty else { return tasks }
         return tasks.filter { $0.title.contains(search) }
     }
@@ -56,46 +59,100 @@ struct TaskListView: View {
                         }
                     }
                     .frame(minHeight: CGFloat(filtered.count) * 40)
-                    .listStyle(.plain)
                 } // if-else
             } // scrollView
+            .listStyle(.plain)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     filtersView
+                }
+                if store.canAddTask(to: stage) {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("New Task") {
+                            showingEdit = true
+                        }
+                    }
                 }
             }
             .searchable(text: $search)
             .navigationTitle("Tasks")
             .refreshable {
                 Worker {
-                    await store.loadAll()
+                    await store.loadTasks(for: stage)
                 }
+            }
+            .onAppear() {
+                Worker {
+                    await store.loadTasks(for: stage)
+                }
+            }
+            .sheet(isPresented: $showingEdit) {
+                TaskEditView(stage: stage)
             }
         } // navigation
     } // body
 
     var filtersView: some View {
-        Picker(selection: $filter) {
-            ForEach(Filter.allCases) {
-                Text($0.rawValue)
+        Menu {
+            Picker("Filter by", selection: $filter) {
+                ForEach(Filter.allCases) {
+                    Text($0.rawValue)
+                }
             }
         } label: {
             Image(systemName: "line.3.horizontal.decrease.circle.fill")
                 .font(.headline)
         }
-        .pickerStyle(.inline)
+    }
+}
 
+struct TaskEditView: View {
+    let stage: Stage
+    @State private var task = EditableTask()
+    @EnvironmentObject var store: Store
+    @Environment(\.dismiss) var dismiss
 
-//        Picker(
-//            "Filter",
-//            systemImage: "line.3.horizontal.decrease.circle.fill",
-//            selection: $filter
-//        ) {
-//            ForEach(Filter.allCases) {
-//                Text($0.rawValue)
-//            }
-//        }
-//        .pickerStyle(.menu)
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Title", text: $task.title)
+                }
+                Section {
+                    TextField("Description", text: $task.description, axis: .vertical)
+                        .lineLimit(12)
+                }
+                Section {
+                    Picker("Assignee", selection: $task.assignee) {
+                        ForEach(store.users) { user in
+                            Text(user.name).tag(user as Profile?)
+                        }
+                        Text("Unselected").tag(nil as Profile?)
+                    }
+                }
+                Section {
+                    Picker("Status", selection: $task.status) {
+                        ForEach(Task.Status.allCases, id: \.self) {
+                            Text($0.rawValue)
+                        }
+                    }
+                }
+            } // form
+            .navigationTitle("New Task")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Create") {
+                        dismiss()
+                        Worker {
+                            await store.add(task: task, to: stage)
+                        }
+                    }
+                    .font(.headline)
+                    .disabled(!task.isValid)
+                }
+            }
+        } // navigation
     }
 }
 

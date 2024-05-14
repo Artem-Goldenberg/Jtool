@@ -19,7 +19,7 @@ struct JtoolApp: App {
 
     var body: some Scene {
         WindowGroup {
-            MainView()
+            ContentView()
                 .environmentObject(store)
         }
     }

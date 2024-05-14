@@ -62,6 +62,41 @@ struct EventListView: View {
     }
 }
 
+//struct UserPicker: View {
+//    @Binding var user: Profile
+//
+//    var body: some View {
+//        Form {
+//            ForEach(users, id: \.id) { user in
+//                Button { toggle(user) } label: {
+//                    HStack {
+//                        Text(user.name)
+//                            .foregroundStyle(.primary)
+//                        Spacer()
+//                        Image(systemName: iconName(for: user))
+//                            .font(.headline)
+//                    }
+//                }
+//            } // foreach
+//        } // form
+//    }
+//
+//    private func iconName(for user: Profile) -> String {
+//        if participants.contains(user) {
+//            return "checkmark.circle.fill"
+//        }
+//        return "circle"
+//    }
+//
+//    private func toggle(_ user: Profile) {
+//        if let found = participants.firstIndex(of: user) {
+//            participants.remove(at: found)
+//        } else {
+//            participants.append(user)
+//        }
+//    }
+//}
+
 struct EventEditView: View {
     @Binding var event: EditableEvent
     let users: [Profile]

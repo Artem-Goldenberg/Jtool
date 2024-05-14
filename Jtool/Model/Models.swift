@@ -4,7 +4,6 @@ import FirebaseFirestore
 struct EditableTask {
     var title = ""
     var description = ""
-    var author: Profile?
     var assignee: Profile?
     var status = Task.Status.active
     var comments: [Comment] = []
@@ -12,14 +11,14 @@ struct EditableTask {
     var isValid: Bool {
         true
         && !title.isEmpty
-        && author != nil
         && assignee != nil
     }
+
+    init() {}
 
     init(from task: Task) {
         self.title = task.title
         self.description = task.description
-        self.author = task.author
         self.assignee = task.assignee
         self.status = task.status
         self.comments = task.comments
@@ -50,6 +49,16 @@ struct Task: Identifiable {
             case .overdue: self = .overdue
             case .completed: self = .completed
             case .review: self = .review
+            }
+        }
+
+        var dbStatus: DBTask.Status {
+            switch self {
+            case .active: .active
+            case .archived: .archived
+            case .overdue: .overdue
+            case .completed: .completed
+            case .review: .review
             }
         }
     }
@@ -94,18 +103,33 @@ struct DBComment: Codable {
     let timestamp: Date
 }
 
-struct Stage: Identifiable {
+struct EditableStage {
+    var begin = Date()
+    var end = Date()
+
+    var isValid: Bool { begin <= end }
+}
+
+struct Stage: Identifiable, Comparable {
     let id: String
     let number: Int
     let begin: Date
     let end: Date
-    let isFinished: Bool
+    var isFinished: Bool
     var tasks: [Task]
 
     var isStarted: Bool { begin <= .now }
     var isCurrent: Bool { isStarted && !isFinished }
     var completedCount: Int {
         tasks.filter { $0.status == .completed }.count
+    }
+
+    static func < (lhs: Stage, rhs: Stage) -> Bool {
+        lhs.number < rhs.number
+    }
+
+    static func == (lhs: Stage, rhs: Stage) -> Bool {
+        lhs.id == rhs.id
     }
 }
 

@@ -23,13 +23,22 @@ struct MainView: View {
                 }
                 .tag(2)
                 .environmentObject(store as Store)
-            TaskListView()
-                .tabItem {
-                    Image(systemName: "list.bullet.rectangle")
-                    .padding(40)
+            Group {
+                if let stage = store.stage {
+                    TaskListView(stage: stage)
+                } else {
+                    ContentUnavailableView(
+                        "This stage's tasks haven't loaded yet, wait a bit",
+                        systemImage: "figure.jumprope"
+                    )
                 }
-                .tag(3)
-                .environmentObject(store as Store)
+            }
+            .tabItem {
+                Image(systemName: "list.bullet.rectangle")
+                    .padding(40)
+            }
+            .tag(3)
+            .environmentObject(store as Store)
             Group {
                 if let profile = store.profile {
                     ProfileEditView(profile: profile)
@@ -45,6 +54,8 @@ struct MainView: View {
             .environmentObject(store as Store)
         }
         .onAppear {
+            // TODO: remove
+//            store.setup(for: "1125@gmail.com")
             Worker {
                 await store.loadAll()
             }

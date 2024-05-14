@@ -72,14 +72,22 @@ class Store: ObservableObject {
                 begin: stage.begin,
                 end: stage.end,
                 isFinished: stage.finished,
-                tasks: !stage.finished ? await loadTasks(for: stage) : []
+                tasks: await loadTasks(for: stage.id)
             )
-        }
+        }.sorted()
     }
 
-    func loadTasks(for stage: DBStage) async -> [Task] {
+    func loadTasks(for stage: Stage) async {
+        guard let index = stages.firstIndex(where: { $0.id == stage.id }) else {
+            errorMessage = "Unknown stage encountered"
+            return
+        }
+        stages[index].tasks = await loadTasks(for: stage.id)
+    }
+
+    private func loadTasks(for stageId: String) async -> [Task] {
         func loadComments(for task: DBTask) async throws -> [Comment] {
-            let commentsRef = db.comments(for: task.id, in: stage.id)
+            let commentsRef = db.comments(for: task.id, in: stageId)
             let snap = try await commentsRef.getDocuments()
 
             guard !snap.isEmpty else { return [] }
@@ -95,7 +103,7 @@ class Store: ObservableObject {
                 }
         }
         do {
-            let taskDocs = try await db.tasks(for: stage.id).getDocuments().documents
+            let taskDocs = try await db.tasks(for: stageId).getDocuments().documents
             return try await taskDocs
                 .map { try $0.data(as: DBTask.self) }
                 .concurrentCompactMap { [self] task in
@@ -110,7 +118,7 @@ class Store: ObservableObject {
                         assignee: assignee,
                         status: .init(from: task.status),
                         comments: try await loadComments(for: task),
-                        stageId: stage.id
+                        stageId: stageId
                     )
                 }
         } catch let error {
@@ -173,23 +181,34 @@ class Store: ObservableObject {
         await loadUsers()
     }
 
-    func canAddComment(to task: Task) -> Bool {
-        guard let stage = stages.first(with: task.stageId) else {
-            errorMessage = "Invalid task with unknown stage"
-            return false
+    func canFinish(stage: Stage) -> Bool {
+        guard let profile, !stage.isFinished, stage.isStarted else { return false }
+        return profile.job == Profile.leader
+    }
+
+    func canAddTask(to stage: Stage) -> Bool {
+        guard let profile, !stage.isFinished else { return false }
+        // current stage
+        if stage.isStarted {
+            return profile.job == Profile.leader
         }
+        // future stage
+        return true
+    }
+
+    var canCreateNewStage: Bool {
+        guard let profile else { return false }
+        return profile.job == Profile.leader
+    }
+
+    func canAddComment(to task: Task) -> Bool {
+        guard let stage = stages.first(with: task.stageId) else { return false }
         return !stage.isFinished
     }
 
     func canEditStatus(of task: Task) -> Bool {
-        guard let profile else {
-            errorMessage = "Profile not yet loaded, try again later"
-            return false
-        }
-        guard let stage = stages.first(with: task.stageId) else {
-            errorMessage = "Invalid task with unknown stage"
-            return false
-        }
+        guard let profile else { return false }
+        guard let stage = stages.first(with: task.stageId) else { return false }
         // cannod edit finished stages
         if stage.isFinished { return false }
 
@@ -223,11 +242,27 @@ class Store: ObservableObject {
             errorMessage = error.localizedDescription
             return
         }
-        if stage.id == self.stage?.id {
-            // it is one of the loaded tasks, find it and change it
-            self.stage?.tasks.firstIndex { $0.id == task.id }.map {
-                self.stage?.tasks[$0].status = status
-            }
+        if let i = stages.firstIndex(with: stage.id),
+           let j = stages[i].tasks.firstIndex(with: task.id) {
+            stages[i].tasks[j].status = status
+        }
+    }
+
+    func finish(stage: Stage) async {
+        guard canFinish(stage: stage) else { 
+            errorMessage = "You do not have permission for it"
+            return
+        }
+        do {
+            try await db.stages.document(stage.id).updateData(
+                ["finished": true]
+            )
+        } catch let error {
+            errorMessage = error.localizedDescription
+            return
+        }
+        stages.firstIndex(with: stage.id).map {
+            stages[$0].isFinished = true
         }
     }
 
@@ -244,7 +279,6 @@ class Store: ObservableObject {
             errorMessage = "Profile is not yet loaded, try again later"
             return
         }
-
         let now = Date.now
         let dbComment = DBComment(
             author: db.users.document(profile.id),
@@ -258,17 +292,83 @@ class Store: ObservableObject {
             errorMessage = error.localizedDescription
             return
         }
-        if task.stageId == self.stage?.id {
-            // comment belongs to one of the loaded tasks
-            self.stage?.tasks.firstIndex { $0.id == task.id }.map {
-                self.stage?.tasks[$0].comments.append(
-                    Comment(
-                        id: commentRef.documentID, author: profile,
-                        content: comment.content, timestamp: now
-                    )
+        if let i = stages.firstIndex(with: task.stageId),
+           let j = stages[i].tasks.firstIndex(with: task.id) {
+            stages[i].tasks[j].comments.append(
+                Comment(
+                    id: commentRef.documentID, author: profile,
+                    content: comment.content, timestamp: now
                 )
-            } // map
-        } // if
+            )
+        }
+    }
+    
+    func add(stage: EditableStage) async {
+        let dbStage = DBStage(
+            number: stages.count, begin: stage.begin,
+            end: stage.end, finished: false
+        )
+        let stageRef: DocumentReference
+        do {
+            stageRef = try db.stages.addDocument(from: dbStage)
+        } catch let error {
+            errorMessage = error.localizedDescription
+            return
+        }
+        stages.append(
+            Stage(
+                id: stageRef.documentID,
+                number: dbStage.number,
+                begin: stage.begin,
+                end: stage.end,
+                isFinished: false,
+                tasks: []
+            )
+        )
+    }
+
+    func add(task: EditableTask, to stage: Stage) async {
+        guard let profile else {
+            errorMessage = "Data not loaded yet"
+            return
+        }
+        guard canAddTask(to: stage) else {
+            errorMessage = "You have no rights!"
+            return
+        }
+        guard task.isValid,
+              let assignee = task.assignee
+        else {
+            errorMessage = "Invalid task submitted"
+            return
+        }
+        let dbTask = DBTask(
+            title: task.title,
+            description: task.description,
+            author: db.users.document(profile.id),
+            assignee: db.users.document(assignee.id),
+            status: task.status.dbStatus
+        )
+        let taskRef: DocumentReference
+        do {
+            taskRef = try db.tasks(for: stage.id).addDocument(from: dbTask)
+        } catch let error {
+            errorMessage = error.localizedDescription
+            return
+        }
+        stages.firstIndex(with: stage.id).map {
+            stages[$0].tasks.append(
+                Task(
+                    id: taskRef.documentID,
+                    title: task.title, 
+                    description: task.description,
+                    author: profile, assignee: assignee,
+                    status: task.status,
+                    comments: task.comments,
+                    stageId: stage.id
+                )
+            )
+        } // map
     }
 }
 
@@ -313,76 +413,11 @@ extension Storage {
     }
 }
 
-extension Sequence where Element: Identifiable {
+extension Array where Element: Identifiable {
     func first(with id: Element.ID) -> Element? {
         first { $0.id == id }
     }
-}
-
-extension Sequence {
-    func asyncMap<T>(_ transform: (Element) async throws -> T) async rethrows -> [T] {
-        let initialCapacity = underestimatedCount
-        if initialCapacity == 0 { return [] }
-
-        var result = ContiguousArray<T>()
-        result.reserveCapacity(initialCapacity)
-
-        var iterator = self.makeIterator()
-
-        // Add elements up to the initial capacity without checking for regrowth.
-        for _ in 0..<initialCapacity {
-            result.append(try await transform(iterator.next()!))
-        }
-        // Add remaining elements, if any.
-        while let element = iterator.next() {
-            result.append(try await transform(element))
-        }
-        return Array(result)
-    }
-
-    func asyncCompactMap<T>(_ transform: (Element) async throws -> T?) async rethrows -> [T] {
-        let initialCapacity = underestimatedCount
-        if initialCapacity == 0 { return [] }
-
-        var result = ContiguousArray<T>()
-        result.reserveCapacity(initialCapacity)
-
-        var iterator = self.makeIterator()
-
-        // Add elements up to the initial capacity without checking for regrowth.
-        for _ in 0..<initialCapacity {
-            if let value = try await transform(iterator.next()!) {
-                result.append(value)
-            }
-        }
-        // Add remaining elements, if any.
-        while let element = iterator.next() {
-            if let value = try await transform(element) {
-                result.append(value)
-            }
-        }
-        return Array(result)
-    }
-
-    func concurrentMap<T>(_ transform: @escaping (Element) async throws -> T) async rethrows -> [T] {
-        let tasks = map { element in
-            Worker {
-                try await transform(element)
-            }
-        }
-        return try await tasks.asyncMap { task in
-            try await task.value
-        }
-    }
-
-    func concurrentCompactMap<T>(_ transform: @escaping (Element) async throws -> T?) async rethrows -> [T] {
-        let tasks = map { element in
-            Worker {
-                try await transform(element)
-            }
-        }
-        return try await tasks.asyncCompactMap { task in
-            try await task.value
-        }
+    func firstIndex(with id: Element.ID) -> Int? {
+        firstIndex { $0.id == id }
     }
 }
