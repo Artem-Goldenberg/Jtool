@@ -50,6 +50,14 @@
 		819F468A2BEFDD7D0055F5B5 /* EventStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 819F46892BEFDD7D0055F5B5 /* EventStore.swift */; };
 		819F468C2BF01B6A0055F5B5 /* EventsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 819F468B2BF01B6A0055F5B5 /* EventsView.swift */; };
 		81AB81E92BF35F0800ECF7F7 /* AsyncExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81AB81E82BF35F0800ECF7F7 /* AsyncExtensions.swift */; };
+		81AB81EB2BF3643600ECF7F7 /* EventEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81AB81EA2BF3643600ECF7F7 /* EventEditView.swift */; };
+		81AB81ED2BF364DA00ECF7F7 /* TaskEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81AB81EC2BF364DA00ECF7F7 /* TaskEditView.swift */; };
+		81AB81EF2BF3650200ECF7F7 /* TaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81AB81EE2BF3650200ECF7F7 /* TaskView.swift */; };
+		81AB81F22BF3659B00ECF7F7 /* StageCardList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81AB81F12BF3659B00ECF7F7 /* StageCardList.swift */; };
+		81AB81F42BF369E300ECF7F7 /* ArrayExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81AB81F32BF369E300ECF7F7 /* ArrayExtensions.swift */; };
+		81AB81F62BF36BBA00ECF7F7 /* UIExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81AB81F52BF36BBA00ECF7F7 /* UIExtensions.swift */; };
+		81AB81F82BF36C2E00ECF7F7 /* StageCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81AB81F72BF36C2E00ECF7F7 /* StageCard.swift */; };
+		81F0AF7E2BFA953B0037A6AC /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 81F0AF7D2BFA953B0037A6AC /* Localizable.xcstrings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -71,6 +79,14 @@
 		819F46892BEFDD7D0055F5B5 /* EventStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventStore.swift; sourceTree = "<group>"; };
 		819F468B2BF01B6A0055F5B5 /* EventsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsView.swift; sourceTree = "<group>"; };
 		81AB81E82BF35F0800ECF7F7 /* AsyncExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncExtensions.swift; sourceTree = "<group>"; };
+		81AB81EA2BF3643600ECF7F7 /* EventEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventEditView.swift; sourceTree = "<group>"; };
+		81AB81EC2BF364DA00ECF7F7 /* TaskEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskEditView.swift; sourceTree = "<group>"; };
+		81AB81EE2BF3650200ECF7F7 /* TaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskView.swift; sourceTree = "<group>"; };
+		81AB81F12BF3659B00ECF7F7 /* StageCardList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageCardList.swift; sourceTree = "<group>"; };
+		81AB81F32BF369E300ECF7F7 /* ArrayExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayExtensions.swift; sourceTree = "<group>"; };
+		81AB81F52BF36BBA00ECF7F7 /* UIExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIExtensions.swift; sourceTree = "<group>"; };
+		81AB81F72BF36C2E00ECF7F7 /* StageCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageCard.swift; sourceTree = "<group>"; };
+		81F0AF7D2BFA953B0037A6AC /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -129,6 +145,7 @@
 		813DE6172B83E87900BA7EF5 /* Jtool */ = {
 			isa = PBXGroup;
 			children = (
+				81AB81F02BF3658200ECF7F7 /* Stages */,
 				81AB81E72BF35E5B00ECF7F7 /* Tasks */,
 				81AB81E62BF35E4200ECF7F7 /* Profile */,
 				81AB81E52BF35E2000ECF7F7 /* Calendar */,
@@ -139,6 +156,7 @@
 				813DE61C2B83E87D00BA7EF5 /* Assets.xcassets */,
 				813DE6262B83E93500BA7EF5 /* GoogleService-Info.plist */,
 				813DE61E2B83E87D00BA7EF5 /* Preview Content */,
+				81F0AF7D2BFA953B0037A6AC /* Localizable.xcstrings */,
 			);
 			path = Jtool;
 			sourceTree = "<group>";
@@ -156,9 +174,10 @@
 			children = (
 				8152D5A32BED244B00F84F30 /* Store.swift */,
 				810C68E82BEE48F600F2E006 /* Models.swift */,
-				819F467E2BEFB2090055F5B5 /* Date+Extension.swift */,
 				819F46892BEFDD7D0055F5B5 /* EventStore.swift */,
 				81AB81E82BF35F0800ECF7F7 /* AsyncExtensions.swift */,
+				81AB81F32BF369E300ECF7F7 /* ArrayExtensions.swift */,
+				819F467E2BEFB2090055F5B5 /* Date+Extension.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -167,6 +186,7 @@
 			isa = PBXGroup;
 			children = (
 				819F468B2BF01B6A0055F5B5 /* EventsView.swift */,
+				81AB81EA2BF3643600ECF7F7 /* EventEditView.swift */,
 				819F46822BEFB2430055F5B5 /* CalendarView.swift */,
 			);
 			path = Calendar;
@@ -185,9 +205,21 @@
 			isa = PBXGroup;
 			children = (
 				811978D42BE7CAEA00CD5F38 /* TaskListView.swift */,
-				811978D62BE7CAF300CD5F38 /* StageView.swift */,
+				81AB81EE2BF3650200ECF7F7 /* TaskView.swift */,
+				81AB81EC2BF364DA00ECF7F7 /* TaskEditView.swift */,
 			);
 			path = Tasks;
+			sourceTree = "<group>";
+		};
+		81AB81F02BF3658200ECF7F7 /* Stages */ = {
+			isa = PBXGroup;
+			children = (
+				811978D62BE7CAF300CD5F38 /* StageView.swift */,
+				81AB81F72BF36C2E00ECF7F7 /* StageCard.swift */,
+				81AB81F12BF3659B00ECF7F7 /* StageCardList.swift */,
+				81AB81F52BF36BBA00ECF7F7 /* UIExtensions.swift */,
+			);
+			path = Stages;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -260,6 +292,7 @@
 			knownRegions = (
 				en,
 				Base,
+				ru,
 			);
 			mainGroup = 813DE60C2B83E87900BA7EF5;
 			packageReferences = (
@@ -281,6 +314,7 @@
 			files = (
 				813DE6202B83E87D00BA7EF5 /* Preview Assets.xcassets in Resources */,
 				813DE61D2B83E87D00BA7EF5 /* Assets.xcassets in Resources */,
+				81F0AF7E2BFA953B0037A6AC /* Localizable.xcstrings in Resources */,
 				813DE6272B83E93500BA7EF5 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -293,13 +327,20 @@
 			buildActionMask = 2147483647;
 			files = (
 				81AB81E92BF35F0800ECF7F7 /* AsyncExtensions.swift in Sources */,
+				81AB81ED2BF364DA00ECF7F7 /* TaskEditView.swift in Sources */,
+				81AB81F42BF369E300ECF7F7 /* ArrayExtensions.swift in Sources */,
+				81AB81F62BF36BBA00ECF7F7 /* UIExtensions.swift in Sources */,
 				819F468C2BF01B6A0055F5B5 /* EventsView.swift in Sources */,
 				819F46832BEFB2430055F5B5 /* CalendarView.swift in Sources */,
+				81AB81F22BF3659B00ECF7F7 /* StageCardList.swift in Sources */,
+				81AB81EB2BF3643600ECF7F7 /* EventEditView.swift in Sources */,
 				810C68E92BEE48F600F2E006 /* Models.swift in Sources */,
 				819F468A2BEFDD7D0055F5B5 /* EventStore.swift in Sources */,
 				8152D5A42BED244B00F84F30 /* Store.swift in Sources */,
 				811978D32BE7CAE100CD5F38 /* ProfileView.swift in Sources */,
 				811978D12BE7A43700CD5F38 /* LoginView.swift in Sources */,
+				81AB81EF2BF3650200ECF7F7 /* TaskView.swift in Sources */,
+				81AB81F82BF36C2E00ECF7F7 /* StageCard.swift in Sources */,
 				819F467F2BEFB2090055F5B5 /* Date+Extension.swift in Sources */,
 				819F46852BEFCE240055F5B5 /* ProfileEditView.swift in Sources */,
 				811978D72BE7CAF300CD5F38 /* StageView.swift in Sources */,
@@ -445,8 +486,8 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -477,8 +518,8 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

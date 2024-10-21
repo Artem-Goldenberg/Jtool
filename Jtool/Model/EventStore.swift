@@ -2,7 +2,7 @@ import Foundation
 import FirebaseFirestore
 
 @MainActor
-class EventStore: Store {
+final class EventStore: Store {
     @Published var events: [Event] = []
 
     func events(on date: Date) -> [Event] {

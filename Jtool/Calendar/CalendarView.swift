@@ -30,7 +30,7 @@ struct CalendarView: UIViewRepresentable {
 
     func updateUIView(_ uiView: some UICalendarView, context: Context) {
         let components = store.events.map { event in
-            var dateComponents = Calendar.current.dateComponents(
+            let dateComponents = Calendar.current.dateComponents(
                 [.day, .month, .year],
                 from: event.timing.start
             )
@@ -69,12 +69,6 @@ struct CalendarView: UIViewRepresentable {
             didSelectDate dateComponents: DateComponents?
         ) {
             parent.date = dateComponents?.date
-//            guard let dateComponents else { return }
-//            let foundEvents = eventStore.events
-//                .filter {$0.date.startOfDay == dateComponents.date?.startOfDay}
-//            if !foundEvents.isEmpty {
-//                parent.displayEvents.toggle()
-//            }
         }
 
         func dateSelection(

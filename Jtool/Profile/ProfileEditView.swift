@@ -25,16 +25,16 @@ struct ProfileEditView: View {
                 TextField("Name", text: $state.name)
                 TextField("Surname", text: $state.surname)
             }
-            Section {
-                Picker("Team", selection: $state.team) {
-                    ForEach(Profile.availableTeams, id: \.self) {
-                        Text($0)
-                    }
-                }
-            }
+//            Section {
+//                Picker("Team", selection: $state.team) {
+//                    ForEach(Profile.availableTeams, id: \.self) {
+//                        Text($0)
+//                    }
+//                }
+//            }
             Section {
                 Picker("Job", selection: $state.job) {
-                    ForEach(Profile.availableJobs, id: \.self) {
+                    ForEach(store.availableJobs, id: \.self) {
                         Text($0)
                     }
                 }
@@ -56,7 +56,7 @@ struct ProfileImageView: View {
         if let image = image {
             Image(uiImage: image)
                 .resizable()
-                .scaledToFill()
+                .scaledToFit()
                 .clipShape(Circle())
         } else {
             ZStack {
@@ -68,8 +68,8 @@ struct ProfileImageView: View {
                     )
                 )
                 Image(systemName: "person.fill")
-                    .font(.system(size: 37))
-                    .foregroundColor(.white)
+                    .foregroundStyle(Color.white)
+                    .font(.system(size: 40))
                     .clipShape(Circle())
             }
         }
@@ -89,7 +89,7 @@ struct ProfileImageEditView: View {
             Spacer()
             Button { showPicker = true } label: {
                 ProfileImageView(image: image)
-                    .frame(width: 100, height: 100)
+                    .frame(width: 180, height: 180)
             }
             Spacer()
         }

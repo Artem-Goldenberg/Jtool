@@ -44,7 +44,8 @@ struct LoginView: View {
                 Image(systemName: "car.front.waves.up.fill")
                 Spacer()
             }.padding(.bottom)
-            Text("Welcome to the Jtool")
+//            Text("Welcome to the Jtool")
+            Text("welcome")
         }
         .font(.headline)
         .padding(.init(top: 53, leading: 0, bottom: 67, trailing: 0))

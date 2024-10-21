@@ -4,14 +4,14 @@ import FirebaseFirestore
 struct EditableTask {
     var title = ""
     var description = ""
-    var assignee: Profile?
+    var assigneeId: String?
     var status = Task.Status.active
     var comments: [Comment] = []
 
     var isValid: Bool {
         true
         && !title.isEmpty
-        && assignee != nil
+        && assigneeId != nil
     }
 
     init() {}
@@ -19,21 +19,31 @@ struct EditableTask {
     init(from task: Task) {
         self.title = task.title
         self.description = task.description
-        self.assignee = task.assignee
+        self.assigneeId = task.assigneeId
         self.status = task.status
         self.comments = task.comments
     }
 }
 
-struct Task: Identifiable {
+struct Task: Identifiable, Equatable {
     let id: String
     let title: String
     let description: String
-    let author: Profile
-    let assignee: Profile
+    let authorId: String
+    let assigneeId: String
     var status: Status
     var comments: [Comment]
     let stageId: String
+
+    static func == (a: Task, b: Task) -> Bool {
+        a.id == b.id &&
+        a.title == b.title &&
+        a.description == b.description &&
+        a.assigneeId == b.assigneeId &&
+        a.status == b.status &&
+        a.comments == b.comments &&
+        a.stageId == b.stageId
+    }
 
     enum Status: String, CaseIterable {
         case active
@@ -50,6 +60,10 @@ struct Task: Identifiable {
             case .completed: self = .completed
             case .review: self = .review
             }
+        }
+
+        var inProgress: Bool {
+            self == .active || self == .review
         }
 
         var dbStatus: DBTask.Status {
@@ -89,11 +103,18 @@ struct EditableComment {
     }
 }
 
-struct Comment: Identifiable {
+struct Comment: Identifiable, Equatable {
     let id: String
-    let author: Profile
+    let authorId: String
     let content: String
     let timestamp: Date
+
+    static func == (a: Comment, b: Comment) -> Bool {
+        a.id == b.id &&
+        a.authorId == b.authorId &&
+        a.content == b.content &&
+        a.timestamp == b.timestamp
+    }
 }
 
 struct DBComment: Codable {
@@ -103,33 +124,45 @@ struct DBComment: Codable {
     let timestamp: Date
 }
 
-struct EditableStage {
+struct EditableStage: Identifiable {
+    let id = UUID()
+
     var begin = Date()
     var end = Date()
 
-    var isValid: Bool { begin <= end }
+    init() {}
+    init(stage: Stage) {
+        self.begin = stage.begin
+        self.end = stage.end
+    }
+
+    var isValid: Bool {
+        begin <= end && self.end > Date.now
+    }
 }
 
-struct Stage: Identifiable, Comparable {
+struct Stage: Identifiable, Equatable {
     let id: String
     let number: Int
-    let begin: Date
-    let end: Date
+    var begin: Date
+    var end: Date
     var isFinished: Bool
     var tasks: [Task]
 
     var isStarted: Bool { begin <= .now }
+    var isFuture: Bool { !isStarted }
     var isCurrent: Bool { isStarted && !isFinished }
     var completedCount: Int {
         tasks.filter { $0.status == .completed }.count
     }
 
-    static func < (lhs: Stage, rhs: Stage) -> Bool {
-        lhs.number < rhs.number
-    }
-
-    static func == (lhs: Stage, rhs: Stage) -> Bool {
-        lhs.id == rhs.id
+    static func == (a: Stage, b: Stage) -> Bool {
+        a.id == b.id &&
+        a.number == b.number &&
+        a.begin == b.begin &&
+        a.end == b.end &&
+        a.isFinished == b.isFinished &&
+        a.tasks == b.tasks
     }
 }
 
@@ -173,8 +206,6 @@ struct EditableProfile {
         && !surname.isEmpty
         && team != Profile.unselected
         && job != Profile.unselected
-        && Profile.availableTeams.contains(team)
-        && Profile.availableJobs.contains(job)
     }
 }
 
@@ -182,18 +213,17 @@ extension Profile {
     static let unselected = "Unspecified"
     static let leader = "Leader"
 
-    static let availableTeams = [
-        unselected,
-        "Mobile",
-        "Backend"
-    ]
-    static let availableJobs = [
-        unselected,
-        "Leader",
-        "Tester",
-        "Primary Developer",
-        "Secondary Developer"
-    ]
+//    static let availableTeams = [
+//        unselected,
+//        "Mobile",
+//        "Backend"
+//    ]
+//    static let availableJobs = [
+//        unselected,
+//        "Leader",
+//        "Tester",
+//        "Developer",
+//    ]
 }
 
 struct Profile: Identifiable, Hashable {
@@ -203,7 +233,7 @@ struct Profile: Identifiable, Hashable {
     let name: String
     let surname: String
     let team: String
-    let job: String
+    var job: String
 }
 
 struct DBProfile: Codable {
@@ -213,4 +243,8 @@ struct DBProfile: Codable {
     let surname: String
     let team: String
     let job: String
+}
+
+struct Job: Codable {
+    let title: String
 }

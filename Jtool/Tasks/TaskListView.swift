@@ -1,8 +1,7 @@
 import SwiftUI
-import FirebaseFirestore
 
 struct TaskListView: View {
-    enum Filter: String, Identifiable, CaseIterable {
+    enum Filter: LocalizedStringKey, Identifiable, CaseIterable {
         case forMe = "Assignee"
         case byMe = "Author"
         case all = "All"
@@ -15,33 +14,15 @@ struct TaskListView: View {
             }
         }
     }
-//    enum SortType: String, CaseIterable {
-//        case date
-//        case dateReverse
-//        case overdue
-//    }
-    let stage: Stage
+    var stage: Stage
 
     @State private var search: String = ""
-    @State private var filter: Filter = .forMe
+    @State private var filter: Filter = .all
     @State private var showingEdit = false
-//    @State private var sortBy: SortType = .date
+    @State private var editableTask = EditableTask()
     @State private var showFilters = false
 
     @EnvironmentObject var store: Store
-
-    private var filtered: [Task] {
-        let tasks = stage.tasks
-            .filter {
-                switch filter {
-                case .forMe: $0.assignee.id == store.profile?.id
-                case .byMe: $0.author.id == store.profile?.id
-                case .all: true
-                }
-            }
-        guard !search.isEmpty else { return tasks }
-        return tasks.filter { $0.title.contains(search) }
-    }
 
     var body: some View {
         NavigationStack {
@@ -56,12 +37,14 @@ struct TaskListView: View {
                             } label: {
                                 Text(task.title)
                             }
+                            .deleteDisabled(!store.canDelete(task: task))
                         }
+                        .onDelete(perform: self.delete)
                     }
-                    .frame(minHeight: CGFloat(filtered.count) * 40)
+                    .listStyle(.inset)
+                    .frame(minHeight: CGFloat(filtered.count) * 100)
                 } // if-else
             } // scrollView
-            .listStyle(.plain)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     filtersView
@@ -69,6 +52,7 @@ struct TaskListView: View {
                 if store.canAddTask(to: stage) {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button("New Task") {
+                            editableTask = .init()
                             showingEdit = true
                         }
                     }
@@ -87,7 +71,7 @@ struct TaskListView: View {
                 }
             }
             .sheet(isPresented: $showingEdit) {
-                TaskEditView(stage: stage)
+                TaskEditView(stage: stage, task: $editableTask)
             }
         } // navigation
     } // body
@@ -104,180 +88,23 @@ struct TaskListView: View {
                 .font(.headline)
         }
     }
-}
 
-struct TaskEditView: View {
-    let stage: Stage
-    @State private var task = EditableTask()
-    @EnvironmentObject var store: Store
-    @Environment(\.dismiss) var dismiss
-
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    TextField("Title", text: $task.title)
-                }
-                Section {
-                    TextField("Description", text: $task.description, axis: .vertical)
-                        .lineLimit(12)
-                }
-                Section {
-                    Picker("Assignee", selection: $task.assignee) {
-                        ForEach(store.users) { user in
-                            Text(user.name).tag(user as Profile?)
-                        }
-                        Text("Unselected").tag(nil as Profile?)
-                    }
-                }
-                Section {
-                    Picker("Status", selection: $task.status) {
-                        ForEach(Task.Status.allCases, id: \.self) {
-                            Text($0.rawValue)
-                        }
-                    }
-                }
-            } // form
-            .navigationTitle("New Task")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Create") {
-                        dismiss()
-                        Worker {
-                            await store.add(task: task, to: stage)
-                        }
-                    }
-                    .font(.headline)
-                    .disabled(!task.isValid)
+    private var filtered: [Task] {
+        let tasks = store.stages.first(with: stage.id)!.tasks
+            .filter {
+                switch filter {
+                case .forMe: $0.assigneeId == store.profile?.id
+                case .byMe: $0.authorId == store.profile?.id
+                case .all: true
                 }
             }
-        } // navigation
-    }
-}
-
-struct TaskView: View {
-    let task: Task
-    @State private var state: EditableTask
-    @State private var commenting = false
-
-    @EnvironmentObject var store: Store
-
-    init(task: Task) {
-        self.task = task
-        self._state = State(initialValue: .init(from: task))
+        guard !search.isEmpty else { return tasks }
+        return tasks.filter { $0.title.contains(search) }
     }
 
-    var body: some View {
-        Form {
-            Section(header: Text("Description")) {
-                Text(task.description)
-            }
-            Section(header: Text("Author")) {
-                NavigationLink(task.author.name) {
-                    ProfileView(profile: task.author)
-                }
-            }
-            Section(header: Text("Assignee")) {
-                NavigationLink(task.assignee.name) {
-                    ProfileView(profile: task.assignee)
-                }
-            }
-            Section {
-                Picker("Status", selection: $state.status) {
-                    ForEach(Task.Status.allCases, id: \.self) {
-                        Text($0.rawValue)
-                    }
-                }
-                .disabled(!store.canEditStatus(of: task))
-                .onChange(of: state.status, updateStatus)
-            }
-            Spacer(minLength: 50).listRowBackground(Color(UIColor.systemGroupedBackground))
-
-            Section(header: Text("Comments").font(.title)) { EmptyView() }
-            Section {
-                Button("Add comment") {
-                    commenting = true
-                }
-                .buttonStyle(.borderless)
-                .disabled(!store.canAddComment(to: task))
-            }
-            ForEach(comments) { comment in
-                Section {
-                    Text(comment.content)
-                    NavigationLink {
-                        ProfileView(profile: comment.author)
-                    } label: {
-                        Text(caption(for: comment))
-                        .foregroundStyle(.link)
-                    }
-                }
-            }.buttonStyle(.borderless)
-        }
-        .navigationTitle(task.title)
-        .sheet(isPresented: $commenting) {
-            CommentEditView(task: task)
-        }
-    }
-
-    var comments: [Comment] {
-        task.comments.sorted(using: KeyPathComparator(\.timestamp, order: .reverse))
-    }
-
-    private func caption(for comment: Comment) -> String {
-        let dateString = comment.timestamp.formatted(date: .abbreviated, time: .shortened)
-        return "\(comment.author.name), \(dateString)"
-    }
-
-    private func updateStatus() {
+    private func delete(at offset: IndexSet) {
         Worker {
-            await store.update(status: state.status, for: task)
-            if store.hasError {
-                state.status = task.status
-            }
-        }
-    }
-}
-
-struct CommentEditView: View {
-    let task: Task
-    @State private var state = EditableComment()
-
-    @EnvironmentObject var store: Store
-    @Environment(\.dismiss) var dismiss
-
-    var body: some View {
-        NavigationStack {
-            Form {
-                TextField("Write here", text: $state.content, axis: .vertical)
-                    .lineLimit(12)
-            }
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done", action: uploadComment)
-                        .font(.headline)
-                        .disabled(!state.isValid)
-                }
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
-                        state.content = ""
-                    }
-                }
-            }
-            .navigationTitle("Comment this task")
-            .navigationBarTitleDisplayMode(.inline)
-            .scrollDisabled(true)
-        }
-    }
-
-    private func uploadComment() {
-        Worker {
-            await store.add(comment: state, to: task)
-            dismiss()
-            if !store.hasError {
-                state = .init()
-            }
+            await store.delete(in: filtered, at: offset, for: stage)
         }
     }
 }
